@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -72,6 +73,10 @@ func ListInstances(ctx context.Context, cli LightsailAPI) ([]InstanceView, error
 			Created:    created,
 		})
 	}
+	// 按名称字母排序
+	sort.Slice(list, func(i, j int) bool {
+		return list[i].Name < list[j].Name
+	})
 	return list, nil
 }
 
@@ -103,22 +108,55 @@ func CreateInstance(ctx context.Context, cli LightsailAPI, in CreateInstanceInpu
 	}
 
 	if in.EnableFWAll {
-		// your python has a small sleep before opening ports
-		time.Sleep(4 * time.Second)
-		_, err = cli.OpenInstancePublicPorts(ctx, &lightsail.OpenInstancePublicPortsInput{
-			InstanceName: &in.InstanceName,
-			PortInfo: &types.PortInfo{
-				FromPort: 0,
-				ToPort:   65535,
-				Protocol: types.NetworkProtocolAll,
-			},
-		})
-		if err != nil {
-			// keep instance created but still return error for visibility
-			return fmt.Errorf("已创建，但开启全端口失败：%v", err)
+		// 等待实例进入 running 状态后再开放全端口（实例刚创建时开端口易失败）
+		if err := waitInstanceRunning(ctx, cli, in.InstanceName, 150*time.Second); err != nil {
+			return fmt.Errorf("实例已创建，但等待就绪超时：%v", err)
+		}
+		var portErr error
+		for attempt := 0; attempt < 3; attempt++ {
+			_, portErr = cli.OpenInstancePublicPorts(ctx, &lightsail.OpenInstancePublicPortsInput{
+				InstanceName: &in.InstanceName,
+				PortInfo: &types.PortInfo{
+					FromPort: 0,
+					ToPort:   65535,
+					Protocol: types.NetworkProtocolAll,
+				},
+			})
+			if portErr == nil {
+				break
+			}
+			time.Sleep(2 * time.Second)
+		}
+		if portErr != nil {
+			// 实例已创建，仅开端口失败，保留可见性
+			return fmt.Errorf("已创建，但开启全端口失败：%v", portErr)
 		}
 	}
 	return nil
+}
+
+// waitInstanceRunning 轮询等待 Lightsail 实例进入 running 状态
+func waitInstanceRunning(ctx context.Context, cli LightsailAPI, name string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		out, err := cli.GetInstances(ctx, &lightsail.GetInstancesInput{})
+		if err == nil && out != nil {
+			for _, ins := range out.Instances {
+				if str(ins.Name) == name {
+					if ins.State != nil && ins.State.Name != nil && *ins.State.Name == "running" {
+						return nil
+					}
+					break
+				}
+			}
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(3 * time.Second):
+		}
+	}
+	return fmt.Errorf("实例 %s 未在 %v 内进入 running 状态", name, timeout)
 }
 
 func RebootInstance(ctx context.Context, cli LightsailAPI, name string) error {

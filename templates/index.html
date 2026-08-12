@@ -164,7 +164,7 @@
               <div class="relative">
                 <select name="enable_fw" class="appearance-none w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all cursor-pointer hover:bg-white">
                   <option value="0">默认规则</option>
-                  <option value="1">⚠️ 开放全部端口</option>
+                  <option value="1">⚠ 开放全部端口</option>
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
                   <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -186,7 +186,7 @@
               </div>
             </div>
 
-            <div class="col-span-12 space-y-2">
+            <div class="col-span-12 md:col-span-6 space-y-2">
               <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Bundle (Plan)</label>
               <div class="relative">
                 <select name="bundle_id" class="appearance-none w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all cursor-pointer hover:bg-white">
@@ -248,7 +248,14 @@
             </div>
           {{end}}
 
-          <div class="col-span-12 space-y-2">
+          <div class="col-span-12 md:col-span-6 space-y-2">
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Instance Name</label>
+            <input name="instance_name" placeholder="留空自动生成"
+                   class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none placeholder:text-gray-300">
+            <div class="text-[10px] text-slate-400">留空自动生成（Lightsail: vps-时间戳, EC2: ec2-时间戳）。</div>
+          </div>
+
+          <div class="col-span-12 md:col-span-6 space-y-2">
             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Root Password</label>
             <input name="root_pwd" placeholder="设置实例 Root 密码 (User-Data)"
                    class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none placeholder:text-gray-300">

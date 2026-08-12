@@ -5,9 +5,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{.Title}}</title>
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/static/site.css">
+  <link rel="icon" href="/static/img/logo.png" type="image/png">
+  <script src="/static/js/tailwind.js"></script>
+  <link rel="stylesheet" href="/static/css/site.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -16,6 +16,11 @@
     html { scroll-behavior: smooth; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+
+    /* Flash 提示：纯透明度进出，避免位移影响页面布局 */
+    @keyframes flashIn { from { opacity: 0; } to { opacity: 1; } }
+    .animate-flash-in { animation: flashIn 0.3s ease-out; }
+    #flash-root { position: fixed; }
     
     /* 玻璃拟态与背景 */
     .glass-nav {
@@ -117,38 +122,38 @@
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-
-    <div id="flash-root" class="fixed right-4 top-20 z-50 w-full max-w-sm space-y-3 animate-fade-in sm:right-6 pointer-events-none">
-      <div class="pointer-events-auto space-y-2">
-      {{if or .Flash.Success .Flash.Error .Flash.Warn .Flash.Info}}
-        {{if .Flash.Success}}
-          <div class="flex items-center gap-3 rounded-xl border border-emerald-100 bg-white/90 backdrop-blur shadow-lg p-4 text-sm font-medium text-emerald-800">
-            <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            {{.Flash.Success}}
-          </div>
-        {{end}}
-        {{if .Flash.Error}}
-          <div class="flex items-center gap-3 rounded-xl border border-rose-100 bg-white/90 backdrop-blur shadow-lg p-4 text-sm font-medium text-rose-800">
-             <svg class="w-5 h-5 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-             {{.Flash.Error}}
-          </div>
-        {{end}}
-        {{if .Flash.Warn}}
-          <div class="flex items-center gap-3 rounded-xl border border-amber-100 bg-white/90 backdrop-blur shadow-lg p-4 text-sm font-medium text-amber-800">
-             <svg class="w-5 h-5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-             {{.Flash.Warn}}
-          </div>
-        {{end}}
-        {{if .Flash.Info}}
-          <div class="flex items-center gap-3 rounded-xl border border-blue-100 bg-white/90 backdrop-blur shadow-lg p-4 text-sm font-medium text-blue-700">
-            <svg class="w-5 h-5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            {{.Flash.Info}}
-          </div>
-        {{end}}
+  <div id="flash-root" class="fixed right-4 bottom-4 z-50 w-full max-w-sm space-y-3 animate-flash-in sm:right-6 pointer-events-none">
+    <div class="pointer-events-auto space-y-2">
+    {{if or .Flash.Success .Flash.Error .Flash.Warn .Flash.Info}}
+      {{if .Flash.Success}}
+        <div class="flex items-center gap-3 rounded-xl border border-emerald-100 bg-white/90 backdrop-blur shadow-lg p-4 text-sm font-medium text-emerald-800">
+          <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          {{.Flash.Success}}
+        </div>
       {{end}}
-      </div>
+      {{if .Flash.Error}}
+        <div class="flex items-center gap-3 rounded-xl border border-rose-100 bg-white/90 backdrop-blur shadow-lg p-4 text-sm font-medium text-rose-800">
+          <svg class="w-5 h-5 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          {{.Flash.Error}}
+        </div>
+      {{end}}
+      {{if .Flash.Warn}}
+        <div class="flex items-center gap-3 rounded-xl border border-amber-100 bg-white/90 backdrop-blur shadow-lg p-4 text-sm font-medium text-amber-800">
+          <svg class="w-5 h-5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          {{.Flash.Warn}}
+        </div>
+      {{end}}
+      {{if .Flash.Info}}
+        <div class="flex items-center gap-3 rounded-xl border border-blue-100 bg-white/90 backdrop-blur shadow-lg p-4 text-sm font-medium text-blue-700">
+          <svg class="w-5 h-5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          {{.Flash.Info}}
+        </div>
+      {{end}}
+    {{end}}
     </div>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
     <div class="grid gap-6 lg:grid-cols-2">
       
@@ -421,422 +426,7 @@
 
   </main>
 
-  <script>
-    (function () {
-      const homeLink = document.getElementById('siteHomeLink');
-      if (!homeLink) {
-        return;
-      }
-      homeLink.addEventListener('click', function (event) {
-        const isHomePath = window.location.pathname === '/';
-        const noQuery = !window.location.search;
-        if (isHomePath && noQuery) {
-          event.preventDefault();
-          window.location.reload();
-        }
-      });
-    })();
-  </script>
-
-  <script>
-    (function () {
-      function shouldBlockShortcut(event) {
-        const key = (event.key || '').toLowerCase();
-        const ctrlOrMeta = event.ctrlKey || event.metaKey;
-        if (event.key === 'F12') return true;
-        if (ctrlOrMeta && event.shiftKey && (key === 'i' || key === 'j' || key === 'c')) return true;
-        if (ctrlOrMeta && (key === 's' || key === 'u')) return true;
-        return false;
-      }
-
-      document.addEventListener('keydown', function (event) {
-        if (shouldBlockShortcut(event)) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-      }, true);
-
-      const menu = document.createElement('div');
-      menu.className = 'custom-context-menu';
-      menu.innerHTML = '<button type="button"><span style="font-size:14px;opacity:0.7;line-height:1">↻</span><span>刷新页面</span></button>';
-      document.body.appendChild(menu);
-
-      const refreshBtn = menu.querySelector('button');
-      refreshBtn.addEventListener('click', function () {
-        menu.classList.remove('ctx-visible');
-        window.location.reload();
-      });
-
-      function hideMenu() {
-        menu.classList.remove('ctx-visible');
-      }
-
-      document.addEventListener('contextmenu', function (event) {
-        event.preventDefault();
-        // 离屏测量真实尺寸
-        menu.style.cssText = 'display:block;left:-9999px;top:-9999px';
-        const w = menu.offsetWidth;
-        const h = menu.offsetHeight;
-        // 计算安全坐标，避免溢出视口
-        let x = event.clientX;
-        let y = event.clientY;
-        if (x + w > window.innerWidth)  x = Math.max(8, window.innerWidth  - w - 8);
-        if (y + h > window.innerHeight) y = Math.max(8, window.innerHeight - h - 8);
-        // 清除内联样式，由 class 控制显示，触发入场动画
-        menu.style.cssText = '';
-        menu.style.left = x + 'px';
-        menu.style.top  = y + 'px';
-        menu.classList.remove('ctx-visible');
-        void menu.offsetWidth;
-        menu.classList.add('ctx-visible');
-      }, true);
-
-      document.addEventListener('click', hideMenu, true);
-      document.addEventListener('scroll', hideMenu, true);
-      window.addEventListener('resize', hideMenu);
-      window.addEventListener('blur', hideMenu);
-    })();
-  </script>
-
-  <script>
-    (function(){
-      const btn = document.getElementById('proxyCheckBtn');
-      const result = document.getElementById('proxyCheckResult');
-      if(!btn || !result) return;
-
-      btn.addEventListener('click', async () => {
-        const proxyInput = document.querySelector('input[name="proxy"]');
-        const proxy = proxyInput ? proxyInput.value.trim() : '';
-        if(!proxy){
-          result.classList.remove('hidden');
-          result.classList.remove('bg-emerald-50','border-emerald-200', 'text-emerald-800');
-          result.classList.add('bg-amber-50','border-amber-200','text-amber-800', 'border');
-          result.textContent = '请先填写 Proxy 再检测。';
-          return;
-        }
-        result.classList.remove('hidden');
-        result.className = 'text-xs bg-gray-50 border border-gray-200 rounded-xl p-3 text-slate-600 animate-pulse';
-        result.textContent = '检测中...';
-        try{
-          const r = await fetch('/proxy/check?proxy='+encodeURIComponent(proxy));
-          const j = await r.json();
-          result.classList.remove('animate-pulse');
-          if(j && j.ok){
-            result.className = 'text-xs bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-emerald-800';
-            const asText = (j.as||'').trim();
-            result.innerHTML = '<div class="flex items-center gap-2"><svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span class="font-bold">Connected</span></div>' +
-                              '<div class="mt-1 pl-6">IP: <span class="font-mono text-emerald-700">'+(j.ip||'')+'</span></div>' +
-                              '<div class="pl-6 mt-0.5 opacity-80">AS: <span class="font-mono">'+(asText||'N/A')+'</span></div>';
-          }else{
-            result.className = 'text-xs bg-rose-50 border border-rose-200 rounded-xl p-3 text-rose-800';
-            result.textContent = (j && j.error) ? j.error : '检测失败';
-          }
-        }catch(e){
-          result.className = 'text-xs bg-rose-50 border border-rose-200 rounded-xl p-3 text-rose-800';
-          result.textContent = '检测失败：' + (e && e.message ? e.message : e);
-        }
-      });
-    })();
-  </script>
-  <script>
-    (function(){
-      const searchInput = document.getElementById('accountSearch');
-      const list = document.getElementById('accountList');
-      const empty = document.getElementById('accountEmpty');
-      if(!searchInput || !list || !empty) return;
-
-      function normalize(text){
-        return (text || '').toLowerCase();
-      }
-
-      function update(){
-        const term = normalize(searchInput.value);
-        let visible = 0;
-        list.querySelectorAll('.account-row').forEach((row) => {
-          const nameNode = row.querySelector('[data-name]');
-          const name = normalize(nameNode ? nameNode.getAttribute('data-name') : '');
-          const matched = !term || name.includes(term);
-          row.classList.toggle('hidden', !matched);
-          if(matched) visible += 1;
-        });
-        empty.classList.toggle('hidden', visible > 0);
-      }
-
-      searchInput.addEventListener('input', update);
-      update();
-    })();
-  </script>
-  <script>
-    async function copyText(text){
-      if(!text) return;
-      try{
-        await navigator.clipboard.writeText(text);
-      }catch(e){
-        const t=document.createElement('textarea');
-        t.value=text;document.body.appendChild(t);t.select();
-        document.execCommand('copy');document.body.removeChild(t);
-      }
-    }
-
-    (function(){
-      const tabRootId = 'tab-root';
-
-      async function replaceTabContent(url, pushState){
-        try{
-          const response = await fetch(url, {headers: {'X-Requested-With': 'fetch-tab'}});
-          if(!response.ok){
-            if(pushState){
-              window.location.href = url;
-            }
-            return;
-          }
-          const html = await response.text();
-          const doc = new DOMParser().parseFromString(html, 'text/html');
-          const newRoot = doc.getElementById(tabRootId);
-          const currentRoot = document.getElementById(tabRootId);
-          if(!newRoot || !currentRoot){
-            if(pushState){
-              window.location.href = url;
-            }
-            return;
-          }
-          currentRoot.replaceWith(newRoot);
-          if(pushState){
-            window.history.pushState({tab: true}, '', url);
-          }
-        }catch(e){
-          if(pushState){
-            window.location.href = url;
-          }
-        }
-      }
-
-      document.addEventListener('click', (event) => {
-        const link = event.target.closest('a[data-tab-link]');
-        if(!link){
-          return;
-        }
-        const url = link.getAttribute('href');
-        if(!url || url.startsWith('javascript:')){
-          return;
-        }
-        if(link.target && link.target !== '_self'){
-          return;
-        }
-        event.preventDefault();
-        replaceTabContent(url, true);
-      });
-
-      document.addEventListener('change', (event) => {
-        const select = event.target.closest('select[data-tab-select]');
-        if(!select){
-          return;
-        }
-        const prefix = select.dataset.tabUrlPrefix || '';
-        if(!prefix){
-          return;
-        }
-        const url = prefix + encodeURIComponent(select.value || '');
-        replaceTabContent(url, true);
-      });
-
-      window.addEventListener('popstate', () => {
-        replaceTabContent(window.location.href, false);
-      });
-    })();
-  </script>
-  <script>
-    (function(){
-      const confirmMask = document.createElement('div');
-      confirmMask.className = 'custom-confirm-mask';
-      confirmMask.innerHTML = '' +
-        '<div class="custom-confirm-dialog" data-variant="danger" role="dialog" aria-modal="true" aria-labelledby="customConfirmTitle">' +
-          '<div class="custom-confirm-header">' +
-            '<span class="custom-confirm-icon">!</span>' +
-            '<span id="customConfirmTitle" class="custom-confirm-title">危险操作确认</span>' +
-          '</div>' +
-          '<p class="custom-confirm-message"></p>' +
-          '<div class="custom-confirm-actions">' +
-            '<button type="button" class="custom-confirm-btn cancel">取消</button>' +
-            '<button type="button" class="custom-confirm-btn confirm">确认</button>' +
-          '</div>' +
-        '</div>';
-      document.body.appendChild(confirmMask);
-
-      const confirmMessage = confirmMask.querySelector('.custom-confirm-message');
-      const confirmCancelBtn = confirmMask.querySelector('.custom-confirm-btn.cancel');
-      const confirmOkBtn = confirmMask.querySelector('.custom-confirm-btn.confirm');
-      const confirmDialog = confirmMask.querySelector('.custom-confirm-dialog');
-      const confirmTitle = confirmMask.querySelector('.custom-confirm-title');
-      const confirmIcon = confirmMask.querySelector('.custom-confirm-icon');
-      let confirmResolver = null;
-      let lastFocusedElement = null;
-
-      function resolveVariant(variant, actionLabel, message) {
-        if (variant === 'danger' || variant === 'default') {
-          return variant;
-        }
-        const merged = (String(actionLabel || '') + ' ' + String(message || '')).toLowerCase();
-        if (/(删除|终止|清空|移除|销毁|停用|drop|terminate|delete|remove)/.test(merged)) {
-          return 'danger';
-        }
-        return 'default';
-      }
-
-      function closeConfirm(result) {
-        confirmMask.classList.remove('is-open');
-        document.body.style.removeProperty('overflow');
-        if (confirmResolver) {
-          const resolve = confirmResolver;
-          confirmResolver = null;
-          resolve(result);
-        }
-        if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
-          lastFocusedElement.focus();
-        }
-      }
-
-      function showConfirm(message, actionLabel, variant) {
-        if (confirmResolver) {
-          closeConfirm(false);
-        }
-        lastFocusedElement = document.activeElement;
-        const finalVariant = resolveVariant(variant, actionLabel, message);
-        confirmDialog.setAttribute('data-variant', finalVariant);
-        if (finalVariant === 'danger') {
-          confirmTitle.textContent = '危险操作确认';
-          confirmIcon.textContent = '!';
-        } else {
-          confirmTitle.textContent = '操作确认';
-          confirmIcon.textContent = 'i';
-        }
-        confirmMessage.textContent = message || '确定继续吗？';
-        confirmOkBtn.textContent = actionLabel || '确认';
-        confirmMask.classList.add('is-open');
-        document.body.style.overflow = 'hidden';
-        setTimeout(function () {
-          confirmCancelBtn.focus();
-        }, 0);
-        return new Promise(function (resolve) {
-          confirmResolver = resolve;
-        });
-      }
-
-      confirmCancelBtn.addEventListener('click', function () {
-        closeConfirm(false);
-      });
-      confirmOkBtn.addEventListener('click', function () {
-        closeConfirm(true);
-      });
-      confirmMask.addEventListener('click', function (event) {
-        if (event.target === confirmMask) {
-          closeConfirm(false);
-        }
-      });
-      document.addEventListener('keydown', function (event) {
-        if (!confirmMask.classList.contains('is-open')) {
-          return;
-        }
-        if (event.key === 'Escape') {
-          event.preventDefault();
-          closeConfirm(false);
-        }
-        if (event.key === 'Tab' && confirmDialog) {
-          const focusables = [confirmCancelBtn, confirmOkBtn].filter(Boolean);
-          if (!focusables.length) return;
-          const current = document.activeElement;
-          const index = focusables.indexOf(current);
-          event.preventDefault();
-          const nextIndex = event.shiftKey
-            ? (index <= 0 ? focusables.length - 1 : index - 1)
-            : (index === focusables.length - 1 ? 0 : index + 1);
-          focusables[nextIndex].focus();
-        }
-      });
-
-      async function handleAjaxSubmit(form){
-        const submitButtons = Array.from(form.querySelectorAll('button')).filter((btn) => {
-          const type = (btn.getAttribute('type') || 'submit').toLowerCase();
-          return type === 'submit';
-        });
-        submitButtons.forEach((btn) => {
-          btn.disabled = true;
-          btn.dataset.originalText = btn.textContent;
-          btn.textContent = '处理中...';
-        });
-        try{
-          const response = await fetch(form.action, {
-            method: (form.method || 'POST').toUpperCase(),
-            body: new FormData(form),
-            headers: {'X-Requested-With': 'ajax-form'}
-          });
-          if(!response.ok){
-            window.location.href = form.action;
-            return;
-          }
-          const html = await response.text();
-          const doc = new DOMParser().parseFromString(html, 'text/html');
-          const newTabRoot = doc.getElementById('tab-root');
-          const currentTabRoot = document.getElementById('tab-root');
-          if(newTabRoot && currentTabRoot){
-            currentTabRoot.replaceWith(newTabRoot);
-          }
-          const newFlashRoot = doc.getElementById('flash-root');
-          const currentFlashRoot = document.getElementById('flash-root');
-          if(newFlashRoot && currentFlashRoot){
-            currentFlashRoot.replaceWith(newFlashRoot);
-          }
-          if(response.url && response.url !== window.location.href){
-            window.history.pushState({form: true}, '', response.url);
-          }
-        }catch(e){
-          window.location.href = form.action;
-        }finally{
-          submitButtons.forEach((btn) => {
-            btn.disabled = false;
-            if(btn.dataset.originalText){
-              btn.textContent = btn.dataset.originalText;
-              delete btn.dataset.originalText;
-            }
-          });
-        }
-      }
-
-      document.addEventListener('submit', (event) => {
-        const form = event.target;
-        if(!(form instanceof HTMLFormElement)){
-          return;
-        }
-        if(event.defaultPrevented){
-          return;
-        }
-
-        const confirmText = form.getAttribute('data-confirm');
-        if(confirmText){
-          event.preventDefault();
-          const actionLabel = form.getAttribute('data-confirm-action') || '确认';
-          const variant = form.getAttribute('data-confirm-variant') || '';
-          showConfirm(confirmText, actionLabel, variant).then((ok) => {
-            if(!ok){
-              return;
-            }
-            if(form.matches('[data-ajax]')){
-              handleAjaxSubmit(form);
-              return;
-            }
-            form.submit();
-          });
-          return;
-        }
-
-        if(!form.matches('[data-ajax]')){
-          return;
-        }
-        event.preventDefault();
-        handleAjaxSubmit(form);
-      });
-    })();
-  </script>
+  <script src="/static/js/app.js"></script>
 </body>
 </html>
 {{end}}

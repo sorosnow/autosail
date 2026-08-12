@@ -57,6 +57,14 @@ func NewSQLiteStore(path string) (*Store, error) {
 	return s, nil
 }
 
+// Close 关闭底层数据库连接（优雅关闭时调用）
+func (s *Store) Close() error {
+	if s.db != nil {
+		return s.db.Close()
+	}
+	return nil
+}
+
 func (s *Store) initSchema(ctx context.Context) error {
 	queries := []string{
 		`CREATE TABLE IF NOT EXISTS users (

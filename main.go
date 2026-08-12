@@ -1,27 +1,31 @@
 package main
 
 import (
+	"context"
 	"crypto/rand"
 	"embed"
 	"encoding/hex"
+	"errors"
 	"html/template"
 	"log"
 	"math/big"
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/gin-gonic/gin"
 	"github.com/patrickmn/go-cache"
 
-	"aws-lightsail-go/internal/aws"
-	"aws-lightsail-go/internal/session"
-	"aws-lightsail-go/internal/store"
+	"autosail/internal/aws"
+	"autosail/internal/session"
+	"autosail/internal/store"
 )
 
 const maxFlashErrorLen = 200
@@ -362,7 +366,6 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery())
 	r.Static("/static", "./static")
-	r.StaticFile("/favicon.ico", "./favicon.ico")
 
 	// templates
 	tmpl := template.Must(template.New("").Funcs(template.FuncMap{
@@ -600,16 +603,13 @@ func main() {
 		s.SetString("last_tab", tab)
 
 		serviceQuery := strings.TrimSpace(c.Query("service"))
-		if tab == "create" {
-			if serviceQuery == "" {
-				serviceQuery = s.GetString("create_service", "lightsail")
-			} else {
+		switch tab {
+		case "create":
+			if serviceQuery != "" {
 				s.SetString("create_service", serviceQuery)
 			}
-		} else if tab == "manage" {
-			if serviceQuery == "" {
-				serviceQuery = s.GetString("manage_service", "lightsail")
-			} else {
+		case "manage":
+			if serviceQuery != "" {
 				s.SetString("manage_service", serviceQuery)
 			}
 		}
@@ -737,7 +737,11 @@ func main() {
 		case "create_failed":
 			errMsg := strings.TrimSpace(c.Query("err"))
 			if errMsg != "" {
-				data.Flash.Error = "创建失败：" + errMsg
+				if strings.Contains(errMsg, "已创建") {
+					data.Flash.Warn = errMsg
+				} else {
+					data.Flash.Error = "创建失败：" + errMsg
+				}
 			} else {
 				data.Flash.Error = "创建失败：请查看服务器日志/检查权限/区域是否可用"
 			}
@@ -1089,8 +1093,12 @@ func main() {
 				userData = aws.BuildRootPasswordUserData(rootPwd)
 			}
 
+			ec2Name := strings.TrimSpace(c.PostForm("instance_name"))
+			if ec2Name == "" {
+				ec2Name = "ec2-" + strconv.FormatInt(time.Now().Unix(), 10)
+			}
 			err = aws.CreateEC2Instance(c.Request.Context(), cli, aws.CreateEC2InstanceInput{
-				Name:         "ec2-" + strconv.FormatInt(time.Now().Unix(), 10),
+				Name:         ec2Name,
 				AMI:          amiID,
 				InstanceType: instanceType,
 				Count:        count,
@@ -1145,8 +1153,10 @@ func main() {
 			return
 		}
 
-		// instanceName: keep it unique like python version
-		instanceName := "vps-" + strconv.FormatInt(time.Now().Unix(), 10)
+		instanceName := strings.TrimSpace(c.PostForm("instance_name"))
+		if instanceName == "" {
+			instanceName = "vps-" + strconv.FormatInt(time.Now().Unix(), 10)
+		}
 		userData := aws.BuildRootPasswordUserData(rootPwd)
 
 		// If ipv6-only, use ipv6 bundle encoding (Lightsail real bundle id)
@@ -1175,7 +1185,12 @@ func main() {
 			EnableFWAll:      enableFW,
 		})
 		if err != nil {
-			c.Redirect(http.StatusFound, "/?tab=create&region="+region+"&msg=create_failed")
+			errMsg := formatFlashError(err)
+			if errMsg != "" {
+				c.Redirect(http.StatusFound, "/?tab=create&region="+region+"&msg=create_failed&err="+url.QueryEscape(errMsg))
+			} else {
+				c.Redirect(http.StatusFound, "/?tab=create&region="+region+"&msg=create_failed")
+			}
 			return
 		}
 
@@ -1286,7 +1301,7 @@ func main() {
 		proxy := strings.TrimSpace(activeKey.Proxy)
 
 		region := normalizeRegion(strings.TrimSpace(c.PostForm("quota_region")))
-		if region == "" && activeKey != nil {
+		if region == "" {
 			region = normalizeRegion(activeKey.QuotaRegion)
 		}
 		if region == "" {
@@ -1329,10 +1344,34 @@ func main() {
 	})
 
 	addr := ":" + strconv.Itoa(port)
-	log.Printf("AutoSail listening on %s", addr)
-	if err := r.Run(addr); err != nil {
-		log.Fatalf("failed to start server on %s: %v", addr, err)
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: r,
 	}
+
+	// 优雅关闭：监听 Ctrl+C / SIGTERM，等待进行中的请求处理完再退出
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		log.Printf("AutoSail listening on %s", addr)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("failed to start server on %s: %v", addr, err)
+		}
+	}()
+
+	<-ctx.Done()
+	log.Println("收到退出信号，正在优雅关闭...")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Fatalf("server forced to shutdown: %v", err)
+	}
+	if err := appStore.Close(); err != nil {
+		log.Printf("failed to close database: %v", err)
+	}
+	log.Println("server exited gracefully")
 }
 
 func doManageAction(c *gin.Context, action string, fn func(ctx *gin.Context, cli aws.LightsailAPI, name string) error) {

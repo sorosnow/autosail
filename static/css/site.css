@@ -1,6 +1,6 @@
 body.site-bg {
   background-color: #f8fafc;
-  background-image: url('/static/bg.jpg');
+  background-image: url('/static/img/background.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -43,6 +43,14 @@ body.site-bg [class*="shadow"] {
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12) !important;
 }
 
+/* Console service cards with gradient bg: make translucent like other cards */
+body.site-bg .bg-gradient-to-br {
+  background-image: none !important;
+  background-color: rgba(255, 255, 255, 0.38) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 /* Inputs should remain clear and legible */
 body.site-bg input,
 body.site-bg select,
@@ -62,6 +70,7 @@ body.site-bg textarea {
   body.site-bg [class*="bg-rose-50"],
   body.site-bg [class*="bg-amber-50"],
   body.site-bg [class*="bg-sky-50"],
+  body.site-bg .bg-gradient-to-br,
   body.site-bg input,
   body.site-bg select,
   body.site-bg textarea {

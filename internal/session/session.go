@@ -53,7 +53,7 @@ type Store struct {
 func NewStore() *Store {
 	st := &Store{
 		m:               map[string]*Session{},
-		ttl:             30 * time.Minute,
+		ttl:             12 * time.Hour,
 		cleanupInterval: 5 * time.Minute,
 	}
 	go st.cleanupLoop()

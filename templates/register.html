@@ -5,9 +5,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{.Title}}</title>
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/static/site.css">
+  <link rel="icon" href="/static/img/logo.png" type="image/png">
+  <script src="/static/js/tailwind.js"></script>
+  <link rel="stylesheet" href="/static/css/site.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -149,6 +149,16 @@
       document.addEventListener('scroll', hideMenu, true);
       window.addEventListener('resize', hideMenu);
       window.addEventListener('blur', hideMenu);
+    })();
+  </script>
+  <script>
+    (function () {
+      // 一次性提示：展示后清除 URL 中的 msg 参数，避免刷新后重复显示
+      var url = new URL(window.location.href);
+      if (url.searchParams.has('msg')) {
+        url.searchParams.delete('msg');
+        window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+      }
     })();
   </script>
 </body>
