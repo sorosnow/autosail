@@ -133,8 +133,8 @@ go version
 ## 二、下载项目
 
 ```bash
-git clone https://github.com/m1zzy1/AWS-AutoSail.git
-cd AWS-AutoSail
+git clone https://github.com/sororain/autosail.git
+cd autosail
 ```
 
 > 如未安装 Git，Windows 可在 <https://git-scm.com/download/win> 下载安装；Linux 执行 `sudo apt install git` 或 `sudo yum install git`。
