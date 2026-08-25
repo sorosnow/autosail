@@ -323,7 +323,7 @@
                                 {{if eq .ID $.PendingKey}}使用中{{else}}切 换{{end}}
                               </button>
                             </form>
-                            <form method="post" action="/auth/delete">
+                            <form method="post" action="/auth/delete" data-confirm="确定删除密钥「{{.Name}}」吗？删除后需重新填写。" data-confirm-action="删除" data-confirm-variant="danger">
                               <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                               <input type="hidden" name="key_id" value="{{.ID}}">
                               <button class="opacity-0 group-hover/row:opacity-100 rounded border border-transparent px-1.5 py-1 text-[10px] font-bold text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition">

@@ -1,3 +1,8 @@
+/* 始终保留垂直滚动条轨道：避免滚动条出现/消失导致内容水平位移（点击删除弹出确认框时“向右抖”） */
+html {
+  overflow-y: scroll;
+}
+
 body.site-bg {
   background-color: #f8fafc;
   background-image: url('/static/img/background.png');
@@ -148,17 +153,20 @@ body.site-bg textarea {
   position: fixed;
   inset: 0;
   z-index: 100000;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   padding: 18px;
   background: rgba(15, 23, 42, 0.36);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.18s ease, visibility 0s linear 0.18s;
 }
 
 .custom-confirm-mask.is-open {
-  display: flex;
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.18s ease;
 }
 
 .custom-confirm-dialog {
@@ -167,14 +175,12 @@ body.site-bg textarea {
   border: 1px solid rgba(255, 255, 255, 0.55);
   background: rgba(255, 255, 255, 0.88);
   box-shadow: 0 20px 50px rgba(15, 23, 42, 0.28), 0 2px 10px rgba(15, 23, 42, 0.12);
-  transform: translateY(6px) scale(0.98);
   opacity: 0;
-  transition: transform 0.16s ease, opacity 0.16s ease;
+  transition: opacity 0.18s ease;
   overflow: hidden;
 }
 
 .custom-confirm-mask.is-open .custom-confirm-dialog {
-  transform: translateY(0) scale(1);
   opacity: 1;
 }
 
@@ -257,24 +263,11 @@ body.site-bg textarea {
 
 .custom-confirm-btn.confirm {
   color: #fff;
-}
-
-.custom-confirm-dialog[data-variant="default"] .custom-confirm-btn.confirm {
-  border-color: #93c5fd;
-  background: #2563eb;
-}
-
-.custom-confirm-dialog[data-variant="default"] .custom-confirm-btn.confirm:hover {
-  background: #1d4ed8;
-  border-color: #60a5fa;
-}
-
-.custom-confirm-dialog[data-variant="danger"] .custom-confirm-btn.confirm {
   border-color: #fda4af;
   background: #e11d48;
 }
 
-.custom-confirm-dialog[data-variant="danger"] .custom-confirm-btn.confirm:hover {
+.custom-confirm-btn.confirm:hover {
   background: #be123c;
   border-color: #fb7185;
 }

@@ -247,7 +247,7 @@ async function copyText(text){
       confirmIcon.textContent = 'i';
     }
     confirmMessage.textContent = message || '确定继续吗？';
-    confirmOkBtn.textContent = actionLabel || '确认';
+    confirmOkBtn.textContent = '确定';
     confirmMask.classList.add('is-open');
     document.body.style.overflow = 'hidden';
     setTimeout(function () { confirmCancelBtn.focus(); }, 0);
