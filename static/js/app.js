@@ -136,6 +136,81 @@
   update();
 })();
 
+// -------------------- 账号列表拖拽排序 --------------------
+(function(){
+  const list = document.getElementById('accountList');
+  if(!list) return;
+  const rows = Array.from(list.querySelectorAll('.account-row'));
+  if(rows.length < 2) return;
+
+  let dragRow = null;
+
+  // 仅在按住手柄时启用行拖拽，避免影响行内按钮点击
+  rows.forEach((row) => {
+    const handle = row.querySelector('.drag-handle');
+    if(!handle) return;
+    handle.addEventListener('mousedown', () => { row.draggable = true; });
+    handle.addEventListener('touchstart', () => { row.draggable = true; }, {passive: true});
+  });
+
+  function clearDragStyles(){
+    rows.forEach((row) => {
+      row.classList.remove('opacity-40', 'ring-2', 'ring-indigo-300', 'rounded-md');
+      row.style.transform = '';
+    });
+  }
+
+  list.addEventListener('dragstart', (event) => {
+    const row = event.target.closest('.account-row');
+    if(!row || !row.draggable){ event.preventDefault(); return; }
+    dragRow = row;
+    row.classList.add('opacity-40');
+    event.dataTransfer.effectAllowed = 'move';
+    try{ event.dataTransfer.setData('text/plain', row.dataset.keyId || ''); }catch(e){}
+  });
+
+  list.addEventListener('dragover', (event) => {
+    if(!dragRow) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    const target = event.target.closest('.account-row');
+    if(!target || target === dragRow || !list.contains(target)) return;
+    const rect = target.getBoundingClientRect();
+    const before = (event.clientY - rect.top) < rect.height / 2;
+    if(before) list.insertBefore(dragRow, target);
+    else list.insertBefore(dragRow, target.nextSibling);
+  });
+
+  list.addEventListener('drop', (event) => { if(dragRow) event.preventDefault(); });
+
+  list.addEventListener('dragend', async () => {
+    if(!dragRow) return;
+    const row = dragRow;
+    dragRow = null;
+    row.draggable = false;
+    clearDragStyles();
+
+    const ids = Array.from(list.querySelectorAll('.account-row'))
+      .map((r) => r.dataset.keyId)
+      .filter(Boolean);
+    if(ids.length < 2) return;
+
+    const body = new URLSearchParams();
+    body.append('csrf_token', list.dataset.csrf || '');
+    ids.forEach((id) => body.append('order', id));
+    try{
+      const response = await fetch('/auth/reorder', {
+        method: 'POST',
+        body: body,
+        headers: {'X-Requested-With': 'ajax-form'}
+      });
+      if(!response.ok) window.location.reload();
+    }catch(e){
+      window.location.reload();
+    }
+  });
+})();
+
 // -------------------- 复制 IP + 标签页 AJAX 切换 --------------------
 async function copyText(text){
   if(!text) return;

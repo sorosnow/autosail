@@ -69,6 +69,9 @@ type PageData struct {
 
 	Flash Flash
 
+	// ToastInfo: 右下角全局提示弹窗（如已退出登录）
+	ToastInfo string
+
 	// Create form
 	CreateEnableFW   bool
 	CreateIPType     string
@@ -440,7 +443,7 @@ func main() {
 		case "csrf":
 			data.Flash.Error = "请求已失效，请重试"
 		case "logout":
-			data.Flash.Info = "已退出登录"
+			data.ToastInfo = "已退出登录"
 		case "regclosed":
 			data.Flash.Warn = "注册已关闭，请联系管理员"
 		case "registered":
@@ -990,6 +993,43 @@ func main() {
 			s.SetString("pending_key_id", "")
 		}
 		c.Redirect(http.StatusFound, "/?msg=cleared")
+	})
+
+	// Reorder keys (drag & drop)
+	r.POST("/auth/reorder", func(c *gin.Context) {
+		s := session.Must(c)
+		userID, _ := userIDFromSession(s)
+		keys, _ := appStore.ListKeys(c.Request.Context(), userID)
+		owned := make(map[int64]struct{}, len(keys))
+		for _, k := range keys {
+			owned[k.ID] = struct{}{}
+		}
+		var ids []int64
+		seen := make(map[int64]struct{})
+		for _, raw := range c.PostFormArray("order") {
+			for _, part := range strings.Split(raw, ",") {
+				part = strings.TrimSpace(part)
+				if part == "" {
+					continue
+				}
+				id, err := strconv.ParseInt(part, 10, 64)
+				if err != nil {
+					continue
+				}
+				if _, ok := owned[id]; !ok {
+					continue
+				}
+				if _, dup := seen[id]; dup {
+					continue
+				}
+				seen[id] = struct{}{}
+				ids = append(ids, id)
+			}
+		}
+		if len(ids) > 0 {
+			_ = appStore.UpdateKeysOrder(c.Request.Context(), userID, ids)
+		}
+		c.Redirect(http.StatusFound, "/")
 	})
 
 	// Proxy exit IP check (uses current session proxy)

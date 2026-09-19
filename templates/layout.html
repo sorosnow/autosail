@@ -112,7 +112,7 @@
 
           <form method="post" action="/logout" data-confirm="确定退出当前账号吗？" data-confirm-action="退出" data-confirm-variant="default">
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-            <button class="group flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors">
+            <button class="group flex items-center gap-2 h-8 px-3 rounded-full bg-slate-100/50 border border-slate-200/60 text-xs font-bold text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 transition-colors">
               <span>退出</span>
               <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
             </button>
@@ -302,10 +302,13 @@
                              class="w-full rounded-md border-0 bg-white px-3 py-1.5 text-xs font-medium ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none placeholder:text-slate-400">
                   </div>
 
-                  <div id="accountList" class="max-h-[200px] overflow-y-auto no-scrollbar">
+                  <div id="accountList" class="max-h-[200px] overflow-y-auto no-scrollbar" data-csrf="{{.CSRFToken}}">
                     {{range .Keys}}
-                      <div class="account-row group/row flex items-center justify-between p-2.5 hover:bg-slate-50 transition border-b border-slate-50 last:border-0">
-                        <div class="min-w-0 flex-1 pr-2">
+                      <div class="account-row group/row flex items-center justify-between p-2.5 hover:bg-slate-50 transition border-b border-slate-50 last:border-0" data-key-id="{{.ID}}">
+                        <div class="flex items-center gap-1.5 min-w-0 flex-1 pr-2">
+                          <span class="drag-handle shrink-0 cursor-grab active:cursor-grabbing text-slate-300 hover:text-indigo-400 opacity-0 group-hover/row:opacity-100 transition" title="拖动排序">
+                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>
+                          </span>
                           <div class="truncate font-bold text-slate-700 text-xs" data-name="{{.Name}}">{{.Name}}</div>
                         </div>
                         <div class="flex items-center gap-2">

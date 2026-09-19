@@ -173,6 +173,7 @@ func (s *Store) ensureAPIKeyColumns(ctx context.Context) error {
 		"quota_spot":    "TEXT NOT NULL DEFAULT ''",
 		"quota_on_name": "TEXT NOT NULL DEFAULT ''",
 		"quota_sp_name": "TEXT NOT NULL DEFAULT ''",
+		"sort_order":    "INTEGER NOT NULL DEFAULT 0",
 	}
 	for name, def := range columns {
 		if _, ok := existing[name]; ok {
@@ -407,7 +408,7 @@ func (s *Store) SetRegistrationOpen(ctx context.Context, open bool) error {
 }
 
 func (s *Store) ListKeys(ctx context.Context, userID int64) ([]Key, error) {
-	stmt, err := s.db.PrepareContext(ctx, `SELECT id, user_id, name, access_key, secret_key, proxy, quota_region, quota_on, quota_spot, quota_on_name, quota_sp_name, created_at FROM api_keys WHERE user_id = ? ORDER BY id DESC;`)
+	stmt, err := s.db.PrepareContext(ctx, `SELECT id, user_id, name, access_key, secret_key, proxy, quota_region, quota_on, quota_spot, quota_on_name, quota_sp_name, created_at FROM api_keys WHERE user_id = ? ORDER BY sort_order ASC, id DESC;`)
 	if err != nil {
 		return nil, err
 	}
@@ -476,6 +477,10 @@ func (s *Store) CreateKey(ctx context.Context, userID int64, name, accessKey, se
 	if err = tx.QueryRowContext(ctx, `SELECT last_insert_rowid();`).Scan(&insertID); err != nil {
 		return 0, err
 	}
+	// 新账号排在列表末尾
+	if _, err = tx.ExecContext(ctx, `UPDATE api_keys SET sort_order = (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM api_keys WHERE user_id = ?) WHERE id = ?;`, userID, insertID); err != nil {
+		return 0, err
+	}
 	if err = tx.Commit(); err != nil {
 		return 0, err
 	}
@@ -512,6 +517,33 @@ func (s *Store) UpdateKey(ctx context.Context, userID, keyID int64, name, access
 	defer stmt.Close()
 	_, err = stmt.ExecContext(ctx, name, accessKey, secretKey, proxy, keyID, userID)
 	return err
+}
+
+// UpdateKeysOrder 按传入的 id 顺序保存账号排序。
+func (s *Store) UpdateKeysOrder(ctx context.Context, userID int64, ids []int64) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+	stmt, err := tx.PrepareContext(ctx, `UPDATE api_keys SET sort_order = ? WHERE id = ? AND user_id = ?;`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	for i, id := range ids {
+		if _, err = stmt.ExecContext(ctx, i+1, id, userID); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 func (s *Store) UpdateKeyQuota(ctx context.Context, userID, keyID int64, region, onVal, spotVal, onName, spotName string) error {

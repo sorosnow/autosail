@@ -11,6 +11,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; }
+    @keyframes flashIn { from { opacity: 0; } to { opacity: 1; } }
+    .animate-flash-in { animation: flashIn 0.3s ease-out; }
   </style>
   <script>
     tailwind.config = {
@@ -73,6 +75,7 @@
         {{end}}
       </div>
       {{end}}
+
 
       <form method="post" action="/login" class="space-y-6">
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
@@ -174,6 +177,29 @@
       }
     })();
   </script>
+  {{if .ToastInfo}}
+  <div id="flash-root" class="fixed right-4 bottom-4 z-50 w-full max-w-sm space-y-3 animate-flash-in sm:right-6 pointer-events-none">
+    <div class="pointer-events-auto flex items-center gap-3 rounded-xl border border-blue-100 bg-white/90 backdrop-blur shadow-lg p-4 text-sm font-medium text-blue-700">
+      <svg class="w-5 h-5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      {{.ToastInfo}}
+    </div>
+  </div>
+  <script>
+    (function () {
+      var root = document.getElementById('flash-root');
+      if (!root) return;
+      var FLASH_TTL = 2000;
+      var FLASH_FADE = 400;
+      setTimeout(function () {
+        root.style.transition = 'opacity ' + FLASH_FADE + 'ms ease';
+        root.style.opacity = '0';
+        setTimeout(function () {
+          if (root && root.parentNode) root.remove();
+        }, FLASH_FADE);
+      }, FLASH_TTL);
+    })();
+  </script>
+  {{end}}
 </body>
 </html>
 {{end}}
