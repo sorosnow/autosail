@@ -424,7 +424,7 @@ func main() {
 		userCount, _ := appStore.CountUsers(c.Request.Context())
 		regOpen, _ := appStore.RegistrationOpen(c.Request.Context())
 		data := PageData{
-			Title:            "AutoSail 登录",
+			Title:            "AutoSail",
 			CSRFToken:        s.GetString("csrf_token", ""),
 			RegistrationOpen: regOpen,
 		}
@@ -506,7 +506,7 @@ func main() {
 		captchaQuestion, captchaAnswer := genRegistrationCaptcha()
 		s.SetString("reg_captcha_answer", captchaAnswer)
 		data := PageData{
-			Title:               "AutoSail 注册",
+			Title:               "AutoSail",
 			CSRFToken:           s.GetString("csrf_token", ""),
 			RegistrationOpen:    regOpen,
 			RegistrationCaptcha: captchaQuestion,
